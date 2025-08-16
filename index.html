@@ -1,191 +1,213 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>傻比十連抽卡池</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
-  <style>html,body,#root{height:100%}</style>
-</head>
-<body class="bg-slate-100">
-  <div id="root"></div>
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-  <!-- 你的 App，直接用 Babel 在瀏覽器轉譯 JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script type="text/babel">
-    const { useMemo, useState } = React;
-    const { motion } = window.framerMotion;
+// 傻比十連抽卡池（單檔 React Component）
+// 使用方式：這檔案可直接在 ChatGPT Canvas 預覽，或複製到你的 React 專案中。
+// 需要：Tailwind（Canvas 內建）與 framer-motion（Canvas 可用）。
 
-    const CARD_POOL = {
-      "可愛卡 🐾": [
-        "喵～快抱我，不然我要滾地板了！",
-        "肉球只給你摸喵！",
-        "今天的可愛配額只給你！",
-        "靠過來，讓我用小腦袋拱你一下～",
-        "本喵今天也要把你占為己有 ✧"
-      ],
-      "沙雕卡 🤣": [
-        "我不是傻，我只是快樂過量。",
-        "人家只是肚子在修煉，不是胖！",
-        "你要是不笑，我就裝死給你看 (x_x)",
-        "今天不搞笑身體會缺鈣！",
-        "我在節食——節的是理智食。"
-      ],
-      "中二卡 ⚡": [
-        "黑暗在呼喚，而我回應了它。",
-        "星辰皆墜落，唯我仍狂舞！",
-        "世界的盡頭，刻著傻比的名字。",
-        "風暴因我而生，寂靜為我讓道。",
-        "光與影的界線，即是我的疆域。"
-      ],
-      "驚喜卡 🌈": [
-        "今天會有好運降臨，因為你抽到我啦～",
-        "秘密卡：快去喝水！",
-        "隱藏Boss卡：傻比超進化！",
-        "加分卡：現在去傳訊息給一個朋友～",
-        "休息卡：伸個懶腰再抽一次！"
-      ]
-    };
-    const CATEGORIES = Object.keys(CARD_POOL);
-    const randomPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const cryptoId = () => Math.random().toString(36).slice(2)+Date.now().toString(36);
+const CARD_POOL: Record<string, string[]> = {
+  "可愛卡 🐾": [
+    "喵～快抱我，不然我要滾地板了！",
+    "肉球只給你摸喵！",
+    "今天的可愛配額只給你！",
+    "靠過來，讓我用小腦袋拱你一下～",
+    "本喵今天也要把你占為己有 ✧"
+  ],
+  "沙雕卡 🤣": [
+    "我不是傻，我只是快樂過量。",
+    "人家只是肚子在修煉，不是胖！",
+    "你要是不笑，我就裝死給你看 (x_x)",
+    "今天不搞笑身體會缺鈣！",
+    "我在節食——節的是理智食。"
+  ],
+  "中二卡 ⚡": [
+    "黑暗在呼喚，而我回應了它。",
+    "星辰皆墜落，唯我仍狂舞！",
+    "世界的盡頭，刻著傻比的名字。",
+    "風暴因我而生，寂靜為我讓道。",
+    "光與影的界線，即是我的疆域。"
+  ],
+  "驚喜卡 🌈": [
+    "今天會有好運降臨，因為你抽到我啦～",
+    "秘密卡：快去喝水！",
+    "隱藏Boss卡：傻比超進化！",
+    "加分卡：現在去傳訊息給一個朋友～",
+    "休息卡：伸個懶腰再抽一次！"
+  ]
+};
 
-    function drawTen() {
-      const results = [];
-      ["可愛卡 🐾","沙雕卡 🤣","中二卡 ⚡"].forEach((key)=>{
-        results.push({ category:key, text:randomPick(CARD_POOL[key]), id:cryptoId() });
-      });
-      while(results.length<10){
-        const cat = randomPick(CATEGORIES);
-        results.push({ category:cat, text:randomPick(CARD_POOL[cat]), id:cryptoId() });
-      }
-      return results;
+const CATEGORIES = Object.keys(CARD_POOL);
+
+function drawTen(): { category: string; text: string; id: string }[] {
+  const results: { category: string; text: string; id: string }[] = [];
+  // 保底：可愛、沙雕、中二各一
+  ["可愛卡 🐾", "沙雕卡 🤣", "中二卡 ⚡"].forEach((key) => {
+    const text = randomPick(CARD_POOL[key]);
+    results.push({ category: key, text, id: cryptoId() });
+  });
+  // 其餘隨機補滿到 10 張
+  while (results.length < 10) {
+    const cat = randomPick(CATEGORIES);
+    const text = randomPick(CARD_POOL[cat]);
+    results.push({ category: cat, text, id: cryptoId() });
+  }
+  return results;
+}
+
+function randomPick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function cryptoId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+export default function SabiiGacha() {
+  const [results, setResults] = useState<ReturnType<typeof drawTen> | null>(null);
+  const [rolling, setRolling] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    CATEGORIES.forEach((c) => (map[c] = 0));
+    results?.forEach((r) => (map[r.category]++));
+    return map;
+  }, [results]);
+
+  const handleRoll = async () => {
+    setRolling(true);
+    setRevealed(false);
+    setResults(drawTen());
+    // 模擬翻牌動畫時間
+    await new Promise((r) => setTimeout(r, 1200));
+    setRevealed(true);
+    setRolling(false);
+  };
+
+  const handleCopy = async () => {
+    if (!results) return;
+    const lines = results.map((r, i) => `${i + 1}. ${r.category}：${r.text}`).join("\n");
+    try {
+      await navigator.clipboard.writeText(`🎰 傻比十連抽結果\n${lines}`);
+      alert("已複製結果到剪貼簿！");
+    } catch (e) {
+      alert("複製失敗，請手動選取。");
     }
+  };
 
-    function CardFace({ category, text }) {
-      const badge =
-        category.includes("可愛") ? "bg-pink-100 text-pink-700" :
-        category.includes("沙雕") ? "bg-yellow-100 text-yellow-700" :
-        category.includes("中二") ? "bg-purple-100 text-purple-700" :
-        "bg-emerald-100 text-emerald-700";
-      return (
-        <div className="flex flex-col h-full">
-          <div className={`px-2 py-1 rounded-xl text-xs font-semibold w-max ${badge}`}>{category}</div>
-          <div className="mt-2 text-base leading-relaxed flex-1">{text}</div>
-          <div className="mt-3 text-xs text-slate-400">#傻比卡池</div>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900 p-6">
+      <div className="max-w-3xl mx-auto">
+        <header className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">🎰 傻比十連抽卡池</h1>
+          <p className="text-slate-600 mt-2">一次十抽，保底可愛＋沙雕＋中二各一張！</p>
+        </header>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+          <button
+            onClick={handleRoll}
+            disabled={rolling}
+            className="px-5 py-3 rounded-2xl shadow bg-black text-white disabled:opacity-60"
+          >
+            {rolling ? "抽卡中…" : results ? "再抽十連" : "開始十連抽"}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="px-5 py-3 rounded-2xl shadow border border-slate-300 bg-white"
+          >
+            複製結果
+          </button>
         </div>
-      );
-    }
 
-    function CardFlip({ children, index, revealed }) {
-      return (
+        {/* 卡牌區 */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {results ? (
+            results.map((card, idx) => (
+              <CardFlip key={card.id} index={idx} revealed={revealed}>
+                <CardFace category={card.category} text={card.text} />
+              </CardFlip>
+            ))
+          ) : (
+            <div className="col-span-full text-center text-slate-500">
+              按下「開始十連抽」，讓命運翻牌 ✨
+            </div>
+          )}
+        </div>
+
+        {/* 統計 */}
+        {results && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 bg-white rounded-2xl shadow p-4"
+          >
+            <h2 className="font-bold text-lg mb-2">結果統計</h2>
+            <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+              {CATEGORIES.map((c) => (
+                <li key={c} className="flex items-center justify-between border rounded-xl px-3 py-2">
+                  <span>{c}</span>
+                  <span className="font-mono">{counts[c] ?? 0}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
+        <footer className="text-center text-xs text-slate-500 mt-8">
+          Made for 傻比 · 這是你的專屬卡池 ✨
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function CardFlip({ children, index, revealed }: { children: React.ReactNode; index: number; revealed: boolean }) {
+  return (
+    <motion.div
+      className="aspect-[3/4] bg-white rounded-2xl shadow relative overflow-hidden"
+      initial={{ rotateY: 0 }}
+      animate={{ rotateY: revealed ? 180 : 0 }}
+      transition={{ duration: 0.6, delay: index * 0.05 }}
+      style={{ transformStyle: "preserve-3d" }}
+    >
+      {/* 背面（未揭示） */}
+      <div
+        className="absolute inset-0 grid place-items-center bg-gradient-to-br from-slate-800 to-slate-900 text-white"
+        style={{ backfaceVisibility: "hidden" }}
+      >
         <motion.div
-          className="aspect-[3/4] bg-white rounded-2xl shadow relative overflow-hidden"
-          initial={{ rotateY: 0 }}
-          animate={{ rotateY: revealed ? 180 : 0 }}
-          transition={{ duration: 0.6, delay: index * 0.05 }}
-          style={{ transformStyle: "preserve-3d" }}
+          animate={{ scale: revealed ? 0.9 : [1, 1.05, 1] }}
+          transition={{ duration: 1.2, repeat: revealed ? 0 : Infinity, repeatType: "reverse" }}
+          className="text-2xl font-black tracking-widest"
         >
-          <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-slate-800 to-slate-900 text-white"
-               style={{ backfaceVisibility: "hidden" }}>
-            <motion.div
-              animate={{ scale: revealed ? 0.9 : [1,1.05,1] }}
-              transition={{ duration: 1.2, repeat: revealed ? 0 : Infinity, repeatType: "reverse" }}
-              className="text-2xl font-black tracking-widest"
-            >
-              S A B I I
-            </motion.div>
-          </div>
-          <div className="absolute inset-0 p-3 flex flex-col"
-               style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-            {children}
-          </div>
+          S A B I I
         </motion.div>
-      );
-    }
+      </div>
+      {/* 正面（揭示後） */}
+      <div
+        className="absolute inset-0 p-3 flex flex-col"
+        style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+      >
+        {children}
+      </div>
+    </motion.div>
+  );
+}
 
-    function App(){
-      const [results,setResults] = useState(null);
-      const [rolling,setRolling] = useState(false);
-      const [revealed,setRevealed] = useState(false);
-      const counts = useMemo(()=>{
-        const m={}; CATEGORIES.forEach(c=>m[c]=0);
-        results?.forEach(r=>m[r.category]++); return m;
-      },[results]);
+function CardFace({ category, text }: { category: string; text: string }) {
+  const badge = category.includes("可愛")
+    ? "bg-pink-100 text-pink-700"
+    : category.includes("沙雕")
+    ? "bg-yellow-100 text-yellow-700"
+    : category.includes("中二")
+    ? "bg-purple-100 text-purple-700"
+    : "bg-emerald-100 text-emerald-700";
 
-      const handleRoll = async ()=>{
-        setRolling(true); setRevealed(false); setResults(drawTen());
-        await new Promise(r=>setTimeout(r,1200));
-        setRevealed(true); setRolling(false);
-      };
-
-      const handleCopy = async ()=>{
-        if(!results) return;
-        const lines = results.map((r,i)=>`${i+1}. ${r.category}：${r.text}`).join("\n");
-        try{
-          await navigator.clipboard.writeText(`🎰 傻比十連抽結果\n${lines}`);
-          alert("已複製結果到剪貼簿！");
-        }catch{ alert("複製失敗，請手動選取。"); }
-      };
-
-      return (
-        <div className="min-h-full bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900 p-6">
-          <div className="max-w-3xl mx-auto">
-            <header className="text-center mb-6">
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">🎰 傻比十連抽卡池</h1>
-              <p className="text-slate-600 mt-2">一次十抽，保底可愛＋沙雕＋中二各一張！</p>
-            </header>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-              <button onClick={handleRoll} disabled={rolling}
-                className="px-5 py-3 rounded-2xl shadow bg-black text-white disabled:opacity-60">
-                {rolling ? "抽卡中…" : results ? "再抽十連" : "開始十連抽"}
-              </button>
-              <button onClick={handleCopy}
-                className="px-5 py-3 rounded-2xl shadow border border-slate-300 bg-white">
-                複製結果
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {results ? results.map((card, idx)=>(
-                <CardFlip key={card.id} index={idx} revealed={revealed}>
-                  <CardFace category={card.category} text={card.text} />
-                </CardFlip>
-              )) : (
-                <div className="col-span-full text-center text-slate-500">
-                  按下「開始十連抽」，讓命運翻牌 ✨
-                </div>
-              )}
-            </div>
-
-            {results && (
-              <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}}
-                          className="mt-8 bg-white rounded-2xl shadow p-4">
-                <h2 className="font-bold text-lg mb-2">結果統計</h2>
-                <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                  {CATEGORIES.map((c)=>(
-                    <li key={c} className="flex items-center justify-between border rounded-xl px-3 py-2">
-                      <span>{c}</span>
-                      <span className="font-mono">{(results||[]).filter(r=>r.category===c).length}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
-
-            <footer className="text-center text-xs text-slate-500 mt-8">
-              Made for 傻比 · 這是你的專屬卡池 ✨
-            </footer>
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
-  </script>
-</body>
-</html>
+  return (
+    <div className="flex flex-col h-full">
+      <div className={`px-2 py-1 rounded-xl text-xs font-semibold w-max ${badge}`}>{category}</div>
+      <div className="mt-2 text-base leading-relaxed flex-1">{text}</div>
+      <div className="mt-3 text-xs text-slate-400">#傻比卡池</div>
+    </div>
+  );
+}
